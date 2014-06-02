@@ -4,6 +4,11 @@
  */
 
 var express = require('express')
+  , favicon = require('serve-favicon')
+  , morgan = require('morgan')
+  , bodyParser = require('body-parser')
+  , methodOverride = require('method-override')
+  , errorHandler = require('errorhandler')
   , api = require('./api')
   , routes = require('./routes')
   , user = require('./routes/user')
@@ -14,25 +19,19 @@ var express = require('express')
   , io = require('socket.io').listen(server);
 
 
-app.configure(function(){
   app.set('port', process.env.PORT || 3003);
   app.set('views', __dirname + '/views');
   app.set('view engine', 'jade');
-  app.use(express.favicon());
-  app.use(express.logger('dev'));
-  app.use(express.bodyParser());
-  app.use(express.methodOverride());
-  app.use(app.router);
-  app.use(express.static(path.join(__dirname, 'public')));
-});
-
-app.configure('development', function(){
-  app.use(express.errorHandler());
-});
+  app.use(morgan('dev'));
+  app.use(bodyParser());
+  app.use(methodOverride());
+  if(!process.env.NODE_ENV || process.env.NODE_ENV=='development') { 
+    app.use(errorHandler());
+  }
 
 app.get('/', routes.index);
 app.get('/users', user.list);
-
+app.use(express.static(path.join(__dirname, 'public')));
 server.listen(app.get('port'), function(){
   console.log("Express server listening on port " + app.get('port'));
 });
